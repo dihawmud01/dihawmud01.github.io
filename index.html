@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wedding Invitation Generator & Demo - Andi & Siti</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Great+Vibes&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS Library for Excel parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ================================================================= -->
+    <!-- VIEW 1: DASHBOARD DEMO (Default view or when ?to parameter is not in URL) -->
+    <!-- ================================================================= -->
+    <div id="dashboard-view" class="view-container">
+        <!-- Dashboard Sidebar / Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-heart-pulse logo-icon"></i>
+                <div class="logo-text">
+                    <h2>VowsLink</h2>
+                    <p>Wedding Invitation Generator</p>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                <a href="#demo-section" class="nav-item" id="nav-preview-invitation"><i class="fa-solid fa-envelope-open-text"></i> Lihat Undangan</a>
+                <a href="#" class="nav-item" onclick="alert('Fitur Premium: Integrasi WhatsApp Gateway & Custom Domain.')"><i class="fa-solid fa-wand-magic-sparkles"></i> Fitur Premium</a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="wedding-couple-badge">
+                    <p class="badge-title">Mempelai Demo</p>
+                    <p class="badge-names">Andi & Siti</p>
+                    <span class="badge-date">18 Oktober 2026</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Dashboard Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-title">
+                    <h1>Dashboard Pengelola Undangan</h1>
+                    <p>Kelola tamu undangan dan hasilkan link personalisasi secara instan dari file Excel.</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary" id="btn-quick-sample"><i class="fa-solid fa-bolt"></i> Isi Data Contoh</button>
+                </div>
+            </header>
+
+            <div class="dashboard-grid">
+                <!-- Left Column: Controls & Guest Table -->
+                <div class="dashboard-left-col">
+                    <!-- Stats Widgets -->
+                    <div class="stats-row">
+                        <div class="stat-card">
+                            <div class="stat-icon pink-bg"><i class="fa-solid fa-users"></i></div>
+                            <div class="stat-data">
+                                <h3 id="stat-total-guests">0</h3>
+                                <p>Total Tamu</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon gold-bg"><i class="fa-solid fa-link"></i></div>
+                            <div class="stat-data">
+                                <h3 id="stat-generated-links">0</h3>
+                                <p>Link Tergenerate</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon green-bg"><i class="fa-solid fa-file-excel"></i></div>
+                            <div class="stat-data">
+                                <h3 id="stat-excel-status">Belum Ada</h3>
+                                <p>Status Excel</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upload Zone Card -->
+                    <div class="dashboard-card upload-card">
+                        <div class="card-header">
+                            <h2><i class="fa-solid fa-cloud-arrow-up"></i> Upload Data Tamu (Excel)</h2>
+                            <a href="#" class="download-template-btn" id="download-template"><i class="fa-solid fa-file-arrow-down"></i> Unduh Template Excel</a>
+                        </div>
+                        <div class="card-body">
+                            <div class="dropzone" id="dropzone">
+                                <input type="file" id="excel-file-input" accept=".xlsx, .xls" style="display: none;">
+                                <i class="fa-solid fa-file-excel dropzone-icon"></i>
+                                <h3>Seret & Lepas file Excel Anda di sini</h3>
+                                <p>atau klik untuk menelusuri file dari komputer Anda</p>
+                                <span class="file-info-badge" id="file-info-badge">Format kolom wajib: <strong>Nama Tamu</strong></span>
+                            </div>
+                            <div class="upload-actions">
+                                <button class="btn btn-secondary" id="btn-browse-file"><i class="fa-solid fa-folder-open"></i> Pilih File</button>
+                                <button class="btn btn-primary" id="btn-process-excel" disabled><i class="fa-solid fa-gears"></i> Hasilkan Link Undangan</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Table of Guests & Links -->
+                    <div class="dashboard-card table-card">
+                        <div class="card-header">
+                            <h2><i class="fa-solid fa-list-check"></i> Daftar Tamu & Link Personalisasi</h2>
+                            <div class="table-search">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="search-input" placeholder="Cari nama tamu...">
+                            </div>
+                        </div>
+                        <div class="card-body table-responsive">
+                            <table class="guest-table" id="guest-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 5%">No</th>
+                                        <th style="width: 30%">Nama Tamu</th>
+                                        <th style="width: 45%">Link Undangan (Demo)</th>
+                                        <th style="width: 20%" class="text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="guest-table-body">
+                                    <tr class="empty-state-row">
+                                        <td colspan="4">
+                                            <div class="empty-state">
+                                                <i class="fa-solid fa-users-slash"></i>
+                                                <p>Belum ada data tamu. Silakan upload file Excel atau klik "Isi Data Contoh" di kanan atas.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Interactive Mobile Frame Preview -->
+                <div class="dashboard-right-col">
+                    <div class="preview-sticky-container">
+                        <div class="preview-header-meta">
+                            <h2><i class="fa-solid fa-mobile-screen-button"></i> Live Mobile Preview</h2>
+                            <p>Simulasi tampilan undangan di ponsel tamu.</p>
+                        </div>
+                        
+                        <!-- Mobile Device Wrapper -->
+                        <div class="mobile-frame">
+                            <div class="mobile-speaker"></div>
+                            <div class="mobile-screen">
+                                <!-- Mobile Preview Content Wrapper (Iframe-like or simulated scroll view) -->
+                                <div class="mobile-preview-iframe-sim" id="mobile-preview-container">
+                                    <div class="preview-placeholder">
+                                        <i class="fa-solid fa-envelope-open-text"></i>
+                                        <h3>Simulasi Undangan</h3>
+                                        <p>Klik tombol <strong>Preview</strong> pada baris tabel tamu untuk melihat simulasi personalisasi undangan di sini.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mobile-home-bar"></div>
+                        </div>
+                        <div class="preview-controls">
+                            <span class="previewing-indicator" id="previewing-indicator">Menampilkan: Tamu Undangan</span>
+                            <button class="btn btn-outline btn-sm" id="btn-open-fullscreen-preview" title="Buka di Tab Baru"><i class="fa-solid fa-expand"></i> Buka Fullscreen</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- VIEW 2: WEDDING INVITATION PAGE (Will be populated or rendered dynamically) -->
+    <!-- ================================================================= -->
+    <div id="wedding-invitation-view" class="view-container hidden">
+        <!-- Background Music (Audio) -->
+        <audio id="bg-music" loop>
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+        </audio>
+
+        <!-- Floating Music Control -->
+        <button id="music-toggle-btn" class="music-control-btn playing">
+            <i class="fa-solid fa-compact-disc"></i>
+        </button>
+
+        <!-- Invitation Cover / Entrance Section (Cover Page) -->
+        <section id="cover-section" class="cover-section">
+            <div class="cover-overlay"></div>
+            <div class="cover-content">
+                <span class="cover-intro">THE WEDDING OF</span>
+                <h1 class="couple-title-main">Andi & Siti</h1>
+                
+                <div class="recipient-box">
+                    <p class="recipient-label">Kepada Yth. Bapak/Ibu/Saudara/i:</p>
+                    <h2 class="recipient-name" id="invitation-recipient-name">Nama Tamu</h2>
+                    <p class="recipient-notice">Tanpa Mengurangi Rasa Hormat, Kami Mengundang Anda Untuk Hadir Di Acara Pernikahan Kami.</p>
+                </div>
+
+                <button class="btn btn-gold btn-open-invitation" id="btn-open-invitation">
+                    <i class="fa-solid fa-envelope-open"></i> Buka Undangan
+                </button>
+            </div>
+        </section>
+
+        <!-- Main Wedding Invitation Content (Hidden initially until opened) -->
+        <div id="invitation-main-content" class="invitation-main-content hidden">
+            <!-- Hero Section -->
+            <section class="invitation-section hero-section" id="hero">
+                <div class="section-overlay"></div>
+                <div class="hero-content">
+                    <div class="flower-top"></div>
+                    <span class="hero-subtitle">Maha Suci Allah yang telah menciptakan makhluk-Nya berpasang-pasangan...</span>
+                    <h2 class="hero-names">Andi & Siti</h2>
+                    <p class="hero-date">Minggu, 18 Oktober 2026</p>
+                    <div class="flower-bottom"></div>
+                </div>
+            </section>
+
+            <!-- Countdown Timer Section -->
+            <section class="invitation-section countdown-section" id="countdown">
+                <div class="container">
+                    <h2 class="section-title">Menghitung Hari Bahagia</h2>
+                    <p class="section-subtitle">Kami tidak sabar menantikan momen spesial ini bersama Anda.</p>
+                    <div class="countdown-grid">
+                        <div class="countdown-item">
+                            <span class="countdown-num" id="cd-days">00</span>
+                            <span class="countdown-label">Hari</span>
+                        </div>
+                        <div class="countdown-item">
+                            <span class="countdown-num" id="cd-hours">00</span>
+                            <span class="countdown-label">Jam</span>
+                        </div>
+                        <div class="countdown-item">
+                            <span class="countdown-num" id="cd-minutes">00</span>
+                            <span class="countdown-label">Menit</span>
+                        </div>
+                        <div class="countdown-item">
+                            <span class="countdown-num" id="cd-seconds">00</span>
+                            <span class="countdown-label">Detik</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bride and Groom Section (Detail Mempelai) -->
+            <section class="invitation-section bride-groom-section" id="bride-groom">
+                <div class="container">
+                    <h2 class="section-title-serif">Assalamu'alaikum Wr. Wb.</h2>
+                    <p class="section-desc">Dengan memohon rahmat dan ridho Allah SWT, kami bermaksud untuk menyelenggarakan pernikahan kami:</p>
+                    
+                    <div class="profile-cards">
+                        <!-- Groom Card -->
+                        <div class="profile-card">
+                            <div class="profile-frame">
+                                <div class="profile-avatar groom-avatar"></div>
+                            </div>
+                            <h3 class="profile-name">Andi Pratama, S.T.</h3>
+                            <p class="profile-parent">Putra pertama dari Bapak H. Ahmad Pratama & Ibu Hj. Aminah</p>
+                            <div class="social-links">
+                                <a href="#"><i class="fa-brands fa-instagram"></i> @andipratama</a>
+                            </div>
+                        </div>
+
+                        <div class="profile-divider">
+                            <span class="ampersand">&</span>
+                        </div>
+
+                        <!-- Bride Card -->
+                        <div class="profile-card">
+                            <div class="profile-frame">
+                                <div class="profile-avatar bride-avatar"></div>
+                            </div>
+                            <h3 class="profile-name">Siti Rahma, S.E.</h3>
+                            <p class="profile-parent">Putri kedua dari Bapak Dr. H. M. Yusuf & Ibu Hj. Ratna</p>
+                            <div class="social-links">
+                                <a href="#"><i class="fa-brands fa-instagram"></i> @sitirahma_</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Event Details & Location Section -->
+            <section class="invitation-section event-section" id="events">
+                <div class="container">
+                    <h2 class="section-title">Waktu & Tempat Acara</h2>
+                    
+                    <div class="events-grid">
+                        <!-- Akad Nikah Card -->
+                        <div class="event-card">
+                            <div class="event-icon"><i class="fa-solid fa-ring"></i></div>
+                            <h3>Akad Nikah</h3>
+                            <div class="event-divider"></div>
+                            <div class="event-detail-item">
+                                <i class="fa-regular fa-calendar-days"></i>
+                                <span>Minggu, 18 Oktober 2026</span>
+                            </div>
+                            <div class="event-detail-item">
+                                <i class="fa-regular fa-clock"></i>
+                                <span>08.00 - 10.00 WIB</span>
+                            </div>
+                            <div class="event-detail-item">
+                                <i class="fa-solid fa-location-dot"></i>
+                                <span><strong>Masjid Raya Baiturrahman</strong><br>Jl. Kenanga No. 12, Jakarta Selatan</span>
+                            </div>
+                        </div>
+
+                        <!-- Resepsi Card -->
+                        <div class="event-card premium">
+                            <div class="premium-badge">Utama</div>
+                            <div class="event-icon"><i class="fa-solid fa-champagne-glasses"></i></div>
+                            <h3>Resepsi Pernikahan</h3>
+                            <div class="event-divider"></div>
+                            <div class="event-detail-item">
+                                <i class="fa-regular fa-calendar-days"></i>
+                                <span>Minggu, 18 Oktober 2026</span>
+                            </div>
+                            <div class="event-detail-item">
+                                <i class="fa-regular fa-clock"></i>
+                                <span>11.00 - 16.00 WIB</span>
+                            </div>
+                            <div class="event-detail-item">
+                                <i class="fa-solid fa-location-dot"></i>
+                                <span><strong>Grand Ballroom Hotel Mulia</strong><br>Jl. Asia Afrika No. 1, Senayan, Jakarta</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Map Container -->
+                    <div class="map-container">
+                        <h3>Peta Lokasi Resepsi</h3>
+                        <div class="map-iframe-wrapper">
+                            <!-- Google Maps Placeholder / Custom Stylized Map Box -->
+                            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.294119934371!2d106.79758787595304!3d-6.224898160962779!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f1484b3d3ad1%3A0xd64f1d4f828a2a0!2sHotel%20Mulia%20Senayan%20Jakarta!5e0!3m2!1sid!2sid!4v1700000000000!5m2!1sid!2sid" width="100%" height="350" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                        </div>
+                        <a href="https://maps.app.goo.gl/3HhU7mF6m4vW6d9E8" target="_blank" class="btn btn-gold mt-3"><i class="fa-solid fa-location-arrow"></i> Petunjuk Arah Google Maps</a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Gallery Section -->
+            <section class="invitation-section gallery-section" id="gallery">
+                <div class="container">
+                    <h2 class="section-title">Galeri Kebahagiaan</h2>
+                    <p class="section-subtitle">Momen manis perjalanan cinta kami.</p>
+                    
+                    <div class="gallery-grid">
+                        <div class="gallery-item">
+                            <img src="assets/images/gallery-1.png" alt="Prewedding 1">
+                            <div class="gallery-overlay"><i class="fa-solid fa-magnifying-glass-plus"></i></div>
+                        </div>
+                        <div class="gallery-item">
+                            <img src="assets/images/gallery-2.png" alt="Prewedding 2">
+                            <div class="gallery-overlay"><i class="fa-solid fa-magnifying-glass-plus"></i></div>
+                        </div>
+                        <div class="gallery-item">
+                            <img src="assets/images/gallery-3.png" alt="Prewedding 3">
+                            <div class="gallery-overlay"><i class="fa-solid fa-magnifying-glass-plus"></i></div>
+                        </div>
+                        <div class="gallery-item">
+                            <img src="assets/images/gallery-4.png" alt="Prewedding 4">
+                            <div class="gallery-overlay"><i class="fa-solid fa-magnifying-glass-plus"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RSVP Section -->
+            <section class="invitation-section rsvp-section" id="rsvp">
+                <div class="container">
+                    <h2 class="section-title">Konfirmasi Kehadiran</h2>
+                    <p class="section-subtitle">Mohon konfirmasi kehadiran Anda melalui form di bawah ini:</p>
+                    
+                    <div class="rsvp-card">
+                        <form id="rsvp-form">
+                            <div class="form-group">
+                                <label for="rsvp-name">Nama Tamu</label>
+                                <input type="text" id="rsvp-name" class="form-control" placeholder="Nama Lengkap Anda" required readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="rsvp-status">Konfirmasi</label>
+                                <select id="rsvp-status" class="form-control" required>
+                                    <option value="" disabled selected>-- Pilih Konfirmasi --</option>
+                                    <option value="Hadir">Saya Akan Hadir</option>
+                                    <option value="Ragu-ragu">Ragu-ragu / Mungkin Hadir</option>
+                                    <option value="Tidak Hadir">Maaf, Tidak Bisa Hadir</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="rsvp-guests">Jumlah Tamu</label>
+                                <select id="rsvp-guests" class="form-control">
+                                    <option value="1">1 Orang</option>
+                                    <option value="2">2 Orang (Maksimal)</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-gold btn-block"><i class="fa-regular fa-paper-plane"></i> Kirim Konfirmasi</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Wishes/Messages Section (Ucapan Tamu) -->
+            <section class="invitation-section wishes-section" id="wishes">
+                <div class="container">
+                    <h2 class="section-title">Ucapan & Doa Restu</h2>
+                    <p class="section-subtitle">Kirimkan doa dan ucapan selamat kepada kedua mempelai.</p>
+                    
+                    <div class="wishes-card">
+                        <form id="wish-form">
+                            <div class="form-group">
+                                <label for="wish-name">Nama</label>
+                                <input type="text" id="wish-name" class="form-control" placeholder="Nama Anda" required readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="wish-message">Ucapan / Doa Restu</label>
+                                <textarea id="wish-message" class="form-control" rows="4" placeholder="Tulis ucapan dan doa terbaik Anda di sini..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-gold btn-block"><i class="fa-regular fa-comment-dots"></i> Kirim Doa Restu</button>
+                        </form>
+
+                        <div class="wishes-divider"></div>
+
+                        <!-- Wishes List -->
+                        <div class="wishes-list" id="wishes-list-container">
+                            <!-- Will be rendered by script.js -->
+                            <div class="wish-item">
+                                <div class="wish-header">
+                                    <span class="wish-author">Budi Santoso</span>
+                                    <span class="wish-badge presence-Hadir"><i class="fa-solid fa-circle-check"></i> Hadir</span>
+                                </div>
+                                <p class="wish-text">Selamat menempuh hidup baru Andi dan Siti! Semoga menjadi keluarga yang sakinah, mawaddah, warahmah. Amin!</p>
+                                <span class="wish-time">Baru saja</span>
+                            </div>
+                            <div class="wish-item">
+                                <div class="wish-header">
+                                    <span class="wish-author">Ahmad Fauzi</span>
+                                    <span class="wish-badge presence-Hadir"><i class="fa-solid fa-circle-check"></i> Hadir</span>
+                                </div>
+                                <p class="wish-text">Barakallahu lakuma wa baraka 'alaikuma wa jama'a bainakuma fii khair. Selamat bro Andi!</p>
+                                <span class="wish-time">2 jam yang lalu</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Digital Gift/Envelope Section (Amplop Digital) -->
+            <section class="invitation-section gift-section" id="gifts">
+                <div class="container">
+                    <h2 class="section-title">Kado Digital / Amplop</h2>
+                    <p class="section-subtitle">Doa restu Anda merupakan karunia terindah, namun jika ingin memberikan tanda kasih secara digital, Anda dapat melalui transfer bank berikut:</p>
+                    
+                    <div class="gift-cards">
+                        <!-- Bank Card 1 -->
+                        <div class="gift-card">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/5/5c/Bank_Central_Asia.svg" alt="BCA" class="bank-logo">
+                            <p class="bank-account-num" id="bank-acc-1">872-0493-294</p>
+                            <p class="bank-account-name">A.n. Andi Pratama</p>
+                            <button class="btn btn-outline btn-sm btn-copy-bank" data-target="bank-acc-1">
+                                <i class="fa-regular fa-copy"></i> Salin No. Rekening
+                            </button>
+                        </div>
+
+                        <!-- Bank Card 2 -->
+                        <div class="gift-card">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/a/ad/Bank_Mandiri_logo_2016.svg" alt="Mandiri" class="bank-logo">
+                            <p class="bank-account-num" id="bank-acc-2">132-00-293849-2</p>
+                            <p class="bank-account-name">A.n. Siti Rahma</p>
+                            <button class="btn btn-outline btn-sm btn-copy-bank" data-target="bank-acc-2">
+                                <i class="fa-regular fa-copy"></i> Salin No. Rekening
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Footer Section -->
+            <footer class="invitation-footer">
+                <div class="container">
+                    <p class="thank-you">Terima Kasih</p>
+                    <h3 class="footer-couple">Andi & Siti</h3>
+                    <p class="footer-note">Kami yang berbahagia, segenap keluarga besar kedua mempelai.</p>
+                    <div class="credits">
+                        <p>© 2026 Andi & Siti. All Rights Reserved. Created with VowsLink.</p>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Image Lightbox Modal -->
+    <div id="lightbox-modal" class="lightbox-modal">
+        <span class="close-lightbox">&times;</span>
+        <img class="lightbox-content" id="lightbox-img">
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">Link berhasil disalin!</div>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+</body>
+</html>
